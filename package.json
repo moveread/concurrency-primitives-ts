@@ -1,0 +1,22 @@
+{
+    "name": "@moveread/package_name",
+    "version": "1.0.0",
+    "description": "package_description",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "npx tsc -p tsconfig.json",
+        "init": "npm install --save-dev typescript",
+        "react": "npm i react react-dom && npm install @types/react @types/react-dom --save-dev"
+    },
+    "author": "Marcel Claramunt",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/react": "^18.2.38",
+        "@types/react-dom": "^18.2.17",
+        "typescript": "^5.3.2"
+    },
+    "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    }
+}
