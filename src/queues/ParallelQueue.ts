@@ -1,3 +1,5 @@
+import * as R from 'ramda'
+
 export type Split<Action> = { now: Action[], later: Action[] }
 
 export function aggregatePop<Action>(
@@ -23,12 +25,17 @@ export type QueueT<Action> = {
 
 /** Queue where actions are aggregated and run concurrently  */
 export function ParallelQueue<Action>(
-  run: (action: Action) => Promise<void>,
+  run: (action: Action, curr: QueueT<Action>) => Promise<boolean>,
   aggregate: (fst: Action, snd: Action) => Split<Action>
 ): QueueT<Action> {
 
   let queue: Action[] = []
   let working = false
+
+  function enqueue(action: Action) {
+    queue.push(action)
+    worker()
+  }
 
   async function worker() {
     if (working || queue.length === 0)
@@ -37,16 +44,17 @@ export function ParallelQueue<Action>(
     working = true
     const { now, later } = aggregatePop(queue, aggregate)
     queue = later
-    await Promise.all(now.map(run))
+    const results = await Promise.all(now.map(action => run(action, { enqueue, queue })))
+    const failed = R.zip(now, results)
+      .filter(([_, succeded]) => !succeded)
+      .map(([action]) => action)
+    queue.unshift(...failed)
     working = false
 
-    setTimeout(worker, 0)
+    if (failed.length === 0)
+      setTimeout(worker, 0)
   }
 
-  function enqueue(action: Action) {
-    queue.push(action)
-    worker()
-  }
 
   return { enqueue, queue }
 }

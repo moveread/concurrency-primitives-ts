@@ -1,6 +1,6 @@
 {
     "name": "concurrency-primitives",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Simple, functional concurrency primitives",
     "main": "dist/index.js",
     "scripts": {
@@ -11,9 +11,15 @@
     "author": "Marcel Claramunt",
     "license": "ISC",
     "devDependencies": {
+        "@types/ramda": "^0.29.10",
+        "@types/react": "^18.2.55",
         "typescript": "^5.3.2"
     },
     "dependencies": {
-        "fp-ts": "^2.16.2"
+        "fp-ts": "^2.16.2",
+        "ramda": "^0.29.1"
+    },
+    "peerDependencies": {
+        "react": "^18.2.0"
     }
 }

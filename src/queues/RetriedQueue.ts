@@ -1,4 +1,6 @@
 import * as E from 'fp-ts/Either'
+import * as R from 'ramda'
+import { useCallback, useRef, useState } from 'react'
 
 export type AsyncEither<L, R> = Promise<E.Either<L, R>>
 
@@ -20,30 +22,31 @@ export type QueueT<Action, L, R> = {
   queue: readonly Item<Action, L, R>[]
 }
 
-export function RetriedQueue<Action, L, R>(
+export function useRetriedQueue<Action, L, R>(
   run: (action: Action) => AsyncEither<L, R>
 ): QueueT<Action, L, R> {
-  let queue: Item<Action, L, R>[] = []
-  let working = false
 
-  async function worker(idx: number) {
-    if (working || idx >= queue.length)
+  const [queue, setQueue] = useState<Item<Action, L, R>[]>([])
+  const working = useRef(false)
+
+  const worker = useCallback(async (idx: number) => {
+    if (working.current || idx >= queue.length)
       return
 
-    working = true
+    working.current = true
     const { action, ...item } = queue[idx]
     if (item.status === 'succeeded') // shouldn't happen, duh
       return worker(idx + 1)
     
     const r = await run(action)
     if (E.isLeft(r)) {
-      queue[idx] = { action, status: 'failed', error: r.left }
+      setQueue(q => R.update(idx, { action, status: 'failed', error: r.left }, q))
       return
     }
 
-    queue[idx] = { action, status: 'succeeded', result: r.right }
+    setQueue(q => R.update(idx, { action, status: 'succeeded', result: r.right }, q))
     setTimeout(() => worker(idx + 1), 0)
-  }
+  }, [queue, run, setQueue])
 
   function enqueue(action: Action) {
     queue.push({ status: 'fresh', action })
